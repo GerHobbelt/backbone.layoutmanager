@@ -31,11 +31,15 @@ var keys;
 // Maintain references to the two `Backbone.View` functions that are
 // overwritten so that they can be proxied.
 var _configure = Backbone.View.prototype._configure;
+var BackboneViewConstructor = Backbone.View;
 
 // Cache these methods for performance.
 var aPush = Array.prototype.push;
 var aConcat = Array.prototype.concat;
 var aSplice = Array.prototype.splice;
+var trim = String.prototype.trim ?
+  _.bind(String.prototype.trim.call, String.prototype.trim) :
+  $.trim;
 
 // LayoutManager is a wrapper around a `Backbone.View`.
 var LayoutManager = Backbone.View.extend({
@@ -850,6 +854,24 @@ LayoutManager.VERSION = "0.9.3";
 
 Backbone.Layout = LayoutManager;
 
+// Override the Backbone.View constructor to call our _configure function.
+// This function was removed from Backbone core in v1.1, but we still keep
+// it around to do some useful configuration.
+if (!_configure){
+  Backbone.View = function(options) {
+    this._configure.call(this, options || {});
+    return BackboneViewConstructor.apply(this, arguments);
+  };
+
+  // Reassign the prototype since we clobbered it with this constructor.
+  Backbone.View.prototype = BackboneViewConstructor.prototype;
+
+  // Backbone assigns `extend` directly to the constructor, so it must be
+  // reassigned as well.
+  Backbone.View.extend = BackboneViewConstructor.extend;
+}
+
+
 // Override _configure to provide extra functionality that is necessary in
 // order for the render function reference to be bound during initialize.
 Backbone.View.prototype._configure = function(options) {
@@ -860,8 +882,22 @@ Backbone.View.prototype._configure = function(options) {
     noel = true;
   }
 
-  // Run the original _configure.
-  retVal = _configure.apply(this, arguments);
+  // Run the original _configure, if it exists. Backbone <1.1 compatibility.
+  if (_configure){
+    retVal = _configure.apply(this, arguments);
+  }
+  
+  // Assign options to the View. If this is Backbone < v1.1, this is done 
+  // automatically by _configure.
+  else {
+    this.options = options;
+
+    // Extend `this` with common view options. Necessary in order for
+    // declared functions on `this.views` to operate properly.
+    var viewOptions = ["model", "collection", "el", "id", "attributes",
+      "className", "tagName", "events"];
+    _.extend(this, _.pick(options, viewOptions));
+  }
 
   // If manage is set, do it!
   if (options.manage || this.manage) {
@@ -896,9 +932,9 @@ LayoutManager.prototype.options = {
     return _.template($(path).html());
   },
 
-  // By default, render using underscore's templating.
+  // By default, render using underscore's templating and trim output.
   renderTemplate: function(template, context) {
-    return template(context);
+    return trim(template(context));
   },
 
   // By default, pass model attributes to the templates
