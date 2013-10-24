@@ -1,27 +1,32 @@
 /*!
- * backbone.layoutmanager.js v0.9.1
+ * backbone.layoutmanager.js v0.9.2
  * Copyright 2013, Tim Branyen (@tbranyen)
  * backbone.layoutmanager.js may be freely distributed under the MIT license.
  */
-(function(window) {
+(function(window, factory) {
+  "use strict";
+  var Backbone = window.Backbone;
+
+  // AMD. Register as an anonymous module.  Wrap in function so we have access
+  // to root via `this`.
+  if (typeof define === "function" && define.amd) {
+    return define(["backbone", "underscore", "jquery"], function() {
+      return factory.apply(window, arguments);
+    });
+  }
+
+  // Browser globals.
+  Backbone.Layout = factory.call(window, Backbone, window._, Backbone.$);
+}(typeof global === "object" ? global : this, function (Backbone, _, $) {
 "use strict";
 
-// Create a valid definition exports function.
-var factory = window.define || function(cb) {
-  window.Backbone.Layout = cb.call(this, function() {});
-};
-
-// Define the module contents.
-factory(function(require) {
+// Create a reference to the global object. In browsers, it will map to the
+// `window` object; in Node, it will be `global`.
+var window = this;
 
 // Hoisted, referenced at the bottom of the source.  This caches a list of all
 // LayoutManager options at definition time.
 var keys;
-
-// Localize global dependency references.
-var Backbone = require("backbone") || window.Backbone;
-var _ = require("underscore") || window._;
-var $ = require("jquery") || Backbone.$;
 
 // Maintain references to the two `Backbone.View` functions that are
 // overwritten so that they can be proxied.
@@ -77,15 +82,11 @@ var LayoutManager = Backbone.View.extend({
     // Return this intermediary promise.
     return def.promise();
   },
-      
+
   // This named function allows for significantly easier debugging.
   constructor: function Layout(options) {
-    // Options may not always be passed to the constructor, this ensures it is
-    // always an object.
-    options = options || {};
-
     // Grant this View superpowers.
-    LayoutManager.setupView(this, options);
+    this.manage = true;
 
     // Have Backbone set up the rest of this View.
     Backbone.View.call(this, options);
@@ -265,9 +266,6 @@ var LayoutManager = Backbone.View.extend({
     // Add reference to the placement selector used.
     selector = manager.selector = root.sections[name] || name;
 
-    // Call the `setup` method, since we now have a relationship created.
-    _.result(view, "setup");
-
     // Code path is less complex for Views that are not being inserted.  Simply
     // remove existing Views and bail out with the assignment.
     if (!insert) {
@@ -344,7 +342,7 @@ var LayoutManager = Backbone.View.extend({
       // method (single view), attach.
       if (parent && !manager.insertedViaFragment) {
         if (!options.contains(parent.el, root.el)) {
-          // Apply the partial using parent's html() or insert() method.
+          // Apply the partial using parent's html() method.
           parent.getAllOptions().partial(parent.$el, root.$el, rentManager,
             manager);
         }
@@ -830,6 +828,13 @@ var LayoutManager = Backbone.View.extend({
         // Reset the property to avoid duplication or overwritting.
         view.views = {};
 
+        // If any declared view is wrapped in a function, invoke it.
+        _.each(declaredViews, function(declaredView, key) {
+          if (typeof declaredView === "function") {
+            declaredViews[key] = declaredView.call(view, view);
+          }
+        });
+
         // Set the declared Views.
         view.setViews(declaredViews);
       }
@@ -846,7 +851,7 @@ var LayoutManager = Backbone.View.extend({
 });
 
 // Tack on the version.
-LayoutManager.VERSION = "0.9.1";
+LayoutManager.VERSION = "0.9.2";
 
 Backbone.Layout = LayoutManager;
 
@@ -916,8 +921,8 @@ LayoutManager.prototype.options = {
       }
     }
 
-    // Use the insert method if insert argument is true.
-    if (manager.insert) {
+    // Use the insert method if the parent's `insert` argument is true.
+    if (rentManager.insert) {
       this.insert($root, $el);
     } else {
       this.html($root, $el);
@@ -940,8 +945,8 @@ LayoutManager.prototype.options = {
     // Shorthand the parent manager object.
     var rentManager = rootView.__manager__;
     // Create a simplified manager object that tells partial() where
-    // place the elements and whether to use html() or insert().
-    var manager = { selector: selector, insert: rentManager.insert };
+    // place the elements.
+    var manager = { selector: selector };
 
     // Get the elements to be inserted into the root view.
     var els = _.reduce(subViews, function(memo, sub) {
@@ -988,6 +993,4 @@ keys = _.keys(LayoutManager.prototype.options);
 // Assign `LayoutManager` object for AMD loaders.
 return LayoutManager;
 
-});
-
-})(typeof global === "object" ? global : this);
+}));

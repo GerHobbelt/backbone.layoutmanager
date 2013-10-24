@@ -1,17 +1,10 @@
-# Grunt configuration updated to latest Grunt.  That means your minimum version
-# necessary to run these tasks is Grunt 0.4.
-#
-# Please install this locally and install `grunt-cli` globally to run.
 module.exports = ->
 
-  # Initialize the configuration.
+  # Configuration.
   @initConfig
     
-    # Empty the reports folder.
-    clean:
-      files: ["test/report"]
+    clean: ["test/report"]
 
-    # Lint source, node, and test code with some sane options.
     jshint:
       files: ["backbone.layoutmanager.js"]
 
@@ -44,23 +37,8 @@ module.exports = ->
             expect: true
             testUtil: true
 
-      # Allow certain options.
-      options:
-        browser: true
-        boss: true
-        immed: false
-        eqnull: true
-        maxlen: 80
-        es3: true
-        curly: true
-        quotmark: "double"
-        trailing: true
-        unused: true
-        undef: true
-        globals:
-          global: true
+      options: @file.readJSON ".jshintrc"
 
-    # Run QUnit tests for browser environments.
     qunit:
       options:
         "--web-security": "no"
@@ -70,11 +48,11 @@ module.exports = ->
           instrumentedFiles: "test/tmp"
           htmlReport: "test/report/coverage"
           coberturaReport: "test/report"
+          lcovReport: "test/report"
           linesThresholdPct: 85
 
       files: ["test/index.html", "!test/node.js"]
 
-    # Run QUnit tests for Node.js environments.
     nodequnit:
       files: ["test/*.js", "!test/dom.js"]
 
@@ -83,8 +61,6 @@ module.exports = ->
         code: "."
         testsDir: "test/"
 
-    # Want to ensure common use cases are accounted for and that we do not make
-    # changes that dramatically impact general performance.
     benchmark:
       options:
         displayResults: true
@@ -93,14 +69,14 @@ module.exports = ->
         src: ["test/benchmark/*.js"]
         dest: "test/report/benchmark_results.csv"
 
-  # Load external Grunt task plugins.
+  # Plugins.
   @loadNpmTasks "grunt-contrib-clean"
   @loadNpmTasks "grunt-contrib-jshint"
   @loadNpmTasks "grunt-qunit-istanbul"
   @loadNpmTasks "grunt-nodequnit"
   @loadNpmTasks "grunt-benchmark"
 
-  # Default task.
+  # Tasks.
   @registerTask "default", [
     "clean", "jshint", "qunit", "nodequnit", "benchmark"
   ]
