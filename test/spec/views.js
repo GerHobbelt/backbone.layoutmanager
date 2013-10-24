@@ -467,8 +467,10 @@ asyncTest("single render per view", function() {
   });
 });
 
-asyncTest("render callback and deferred context is view", function() {
-  expect(6);
+test("render callback and deferred context is view", 6, function() {
+  // Since we have multiple start() calls, we use stop() with the 
+  // number of start calls instead of using asyncTest
+  stop(6);
 
   var main = new Backbone.Layout({
     template: "main",
@@ -549,7 +551,7 @@ asyncTest("list items don't duplicate", 2, function() {
   }, 5);
 });
 
-test("afterRender triggers for nested views", 1, function() {
+asyncTest("afterRender triggers for nested views", 1, function() {
   var triggered = false;
   var main = new Backbone.Layout({
     el: "#prefilled"
@@ -573,7 +575,7 @@ test("afterRender triggers for nested views", 1, function() {
 });
 
 // Do this one without a custom render function as well.
-test("view render can be attached inside initalize", 1, function() {
+asyncTest("view render can be attached inside initalize", 1, function() {
   var main = new Backbone.Layout({
     template: "main"
   });
@@ -1936,21 +1938,30 @@ test("trigger callback on a view with `keep: true`", 1, function() {
 });
 
 // https://github.com/tbranyen/backbone.layoutmanager/issues/323
-test("templates should be trimmed before insertion", 1, function() {
+test("templates strings enclosed in whitespace should render without error", 1, function() {
   var layout = new Backbone.Layout({
-    template: "tpl",
     el: false,
-    fetchTemplate: function() {
+    template: function() {
       return "\n <div>Hey</div>\n ";
-    },
-    renderTemplate: function( tpl ) {
-      return tpl;
     }
   });
 
   layout.render();
 
-  equal(layout.$el.text(), "Hey");
+  equal(testUtil.trim(layout.$el.text()), "Hey");
+});
+
+test("<script> tags should not be removed from templates", 1, function() {
+  var layout = new Backbone.Layout({
+    el: false,
+    template: function() {
+      return "<div><script></script></div>";
+    }
+  });
+
+  layout.render();
+
+  equal(layout.$el.find("script").length, 1);
 });
 
 asyncTest("asynchronous beforeRender", 1, function() {
@@ -2228,3 +2239,12 @@ test("A view's 'views' option should auto-invoke passed functions.", 3, function
 });
 
 })();
+
+// https://github.com/tbranyen/backbone.layoutmanager/issues/383
+test("A view will not throw an error when defined without an events hash", 1, function() {
+  var TestView = Backbone.View.extend({
+    manage: true
+  });
+  new TestView();
+  ok(true, "Does not throw an exception");
+});

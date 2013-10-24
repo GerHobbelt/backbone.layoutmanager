@@ -1,7 +1,9 @@
 LayoutManager
-=============
+-------------
 
-**v0.9.2** [![Build
+**Stable: 0.9.3** 
+
+[![Build
 Status](https://travis-ci.org/tbranyen/backbone.layoutmanager.png?branch=master)](https://travis-ci.org/tbranyen/backbone.layoutmanager)
 [![Dependency
 Status](https://gemnasium.com/tbranyen/backbone.layoutmanager.png)](https://gemnasium.com/tbranyen/backbone.layoutmanager)
@@ -21,45 +23,46 @@ tested, with full code coverage, in both the browser and Node.js environments.
 Depends on Underscore, Backbone, and jQuery.  You can swap out the dependencies
 with a custom configuration.
 
-## Documentation ##
+#### Documentation ####
 
 http://layoutmanager.org/
 
-## Migrating from 0.8 ##
+#### Migrating from 0.8 ####
 
 http://layoutmanager.org/From-0.8-to-0.9
 
-## Release notes ##
+#### Release notes ####
 
-* Updated AMD define shim to use UMD which fixes issues in some R.js builds.
-* Updated views property to accept functions that return values, see #367.
-* Fixed Node.js file lookup that was scoping to `__dirname`.
-* Ensured all examples work.
-* Hooked up Coveralls for monitoring and displaying code coverage during builds.
+* Style/spelling updates to markdown files.
+* Broke out `_viewRender` and `_applyTemplate` from their closures and exposed
+  them on the LM object.
+* Parsing with `$.parseHTML` to allow leading whitespace and retain whitespace
+  in templates.
+* Using Bower to manage testing depenencies.
+* Fixes for Underscore 1.5.
 
 [Full Release
-Log](https://github.com/tbranyen/backbone.layoutmanager/blob/master/changelog.md)
+Log](https://github.com/tbranyen/backbone.layoutmanager/blob/master/CHANGELOG.md)
 
-## Contributing ##
+#### Contributing ####
 
 Please read and follow the [contribution
-guide](https://github.com/tbranyen/backbone.layoutmanager/blob/master/contributing.md)
+guide](https://github.com/tbranyen/backbone.layoutmanager/blob/master/CONTRIBUTING.md)
 before contributing.
 
-**Running the unit tests in the browser**
+#### Running the unit tests ####
 
-Open `test/index.html` in your favorite browser to ensure LayoutManager works
-as expected.
+Open `test/index.html` in your browser to run the test suite.
 
-**Running the unit tests headless**
+**Headless:**
 
 Install [Node.js](http://nodejs.org), [Grunt.js 0.4](http://gruntjs.com), and
-run `npm install` inside the project directory.
+run `npm install -q` inside the project directory.
 
 Make sure you've installed `grunt-cli` globally with:
 
 ``` bash
-[sudo] npm install grunt-cli -g
+npm install grunt-cli -gq
 ```
 
 Run `grunt` inside a terminal in the project directory to run the tests in both
