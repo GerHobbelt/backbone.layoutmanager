@@ -1,5 +1,5 @@
 /*!
- * backbone.layoutmanager.js v0.9.0
+ * backbone.layoutmanager.js v0.9.1
  * Copyright 2013, Tim Branyen (@tbranyen)
  * backbone.layoutmanager.js may be freely distributed under the MIT license.
  */
@@ -7,12 +7,12 @@
 "use strict";
 
 // Create a valid definition exports function.
-var define = window.define || function(cb) {
+var factory = window.define || function(cb) {
   window.Backbone.Layout = cb.call(this, function() {});
 };
 
 // Define the module contents.
-define(function(require) {
+factory(function(require) {
 
 // Hoisted, referenced at the bottom of the source.  This caches a list of all
 // LayoutManager options at definition time.
@@ -846,7 +846,7 @@ var LayoutManager = Backbone.View.extend({
 });
 
 // Tack on the version.
-LayoutManager.VERSION = "0.9.0-pre";
+LayoutManager.VERSION = "0.9.1";
 
 Backbone.Layout = LayoutManager;
 
